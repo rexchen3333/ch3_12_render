@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>學生資料管理系統</title>
+{% endblock %}
+
+{% block content %}
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+body {
+    background-color: #9ab4e9;
+    font-family: "Microsoft JhengHei", sans-serif;
+}
+
+h1, h2 {
+    text-align: center;
+    margin: 15px 0;
+    color: #2c3e50;
+}
+
+h2 a {
+    color: #2980b9;
+    font-weight: bold;
+    text-decoration: none;
+}
+h2 a:hover {
+    text-decoration: underline;
+}
+
+.search-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.search-container input[type="search"] {
+    padding: 8px 12px;
+    width: 250px;
+    border-radius: 6px;
+    border: 1px solid #3498db;
+    outline: none;
+    font-size: 14px;
+}
+.search-container button {
+    padding: 8px 16px;
+    margin-left: 8px;
+    border: none;
+    border-radius: 6px;
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.search-container button:hover {
+    background-color: #21618c;
+}
+
+table {
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+th, td {
+    padding: 12px 15px;
+    text-align: center;
+    font-size: 14px;
+}
+th {
+    background-color: #2980b9;
+    color: white;
+    font-weight: 600;
+}
+tr:nth-child(even) td {
+    background-color: #f2f8ff;
+}
+tr:hover td {
+    background-color: #d6e6ff;
+    transition: background 0.3s;
+}
+
+.action-btn {
+    display: inline-block;
+    padding: 6px 10px;
+    margin: 0 2px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+.action-btn.edit {
+    background-color: #27ae60;
+}
+.action-btn.edit:hover {
+    background-color: #1e8449;
+}
+.action-btn.delete {
+    background-color: #c0392b;
+}
+.action-btn.delete:hover {
+    background-color: #7f1d18;
+}
+
+.pagination {
+    text-align: center;
+    margin: 25px 0;
+}
+.pagination a, .pagination strong {
+    display: inline-block;
+    padding: 6px 12px;
+    margin: 0 3px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #2980b9;
+}
+.pagination a {
+    color: #2980b9;
+    transition: all 0.3s;
+}
+.pagination a:hover {
+    background-color: #2980b9;
+    color: white;
+}
+.pagination strong {
+    background-color: #2980b9;
+    color: white;
+    border: 1px solid #2980b9;
+}
+
+.error-message {
+    text-align: center;
+    color: #c0392b;
+    font-size: 20px;
+    margin-top: 50px;
+}
+</style>
+
+<div class="head_content">
+    <h1>學生資料管理系統</h1>
+    <h2>
+        目前資料筆數：{{ data_count }}　
+        <a href="/post/">新增學生資料</a>
+    </h2>
+
+    <div class="search-container">
+        <form action="/index/" method="get">
+            <input type="search" id="site_search" name="site_search" value="{{ site_search }}" placeholder="輸入關鍵字...">
+            <button type="submit">搜尋</button>
+        </form>
+    </div>
+</div>
+
+{% if status %}
+<table>
+    <tr>
+        <th>學號</th>
+        <th>姓名</th>
+        <th>性別</th>
+        <th>生日</th>
+        <th>信箱</th>
+        <th>電話</th>
+        <th>地址</th>
+        <th>操作</th>
+    </tr>
+
+    {% for data in page_obj %}
+    <tr>
+        <td>{{ data.cID }}</td>
+        <td>{{ data.cName }}</td>
+        <td>{% if data.cSex == "M" %}男{% elif data.cSex == "F" %}女{% else %}-{% endif %}</td>
+        <td>{{ data.cBirthday | date:'Y/m/d' }}</td>
+        <td>{{ data.cEmail }}</td>
+        <td>{{ data.cPhone }}</td>
+        <td>{{ data.cAddr }}</td>
+        <td>
+            <a href="/edit/{{ data.cID }}/" class="action-btn edit">🖉 編輯</a>
+            <a href="javascript:void(0);" onclick="confirmDelete('{{ data.cID }}');" class="action-btn delete">🗑️ 刪除</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1{% if site_search %}&site_search={{ site_search }}{% endif %}">最前頁</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if site_search %}&site_search={{ site_search }}{% endif %}">上一頁</a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+            <strong>{{ num }}</strong>
+        {% else %}
+            <a href="?page={{ num }}{% if site_search %}&site_search={{ site_search }}{% endif %}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if site_search %}&site_search={{ site_search }}{% endif %}">下一頁</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if site_search %}&site_search={{ site_search }}{% endif %}">最後頁</a>
+    {% endif %}
+</div>
+
+<script>
+function confirmDelete(id) {
+    Swal.fire({
+        title: '確定要刪除這筆資料嗎?',
+        text: "刪除後將無法復原！",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#c0392b',
+        cancelButtonColor: '#2980b9',
+        confirmButtonText: '是，刪除！',
+        cancelButtonText: '取消'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "/delete/" + id + "/";
+        }
+    });
+}
+</script>
+
+{% else %}
+<div class="error-message">{{ errormessage }}</div>
+{% endif %}
+
+{% endblock %}

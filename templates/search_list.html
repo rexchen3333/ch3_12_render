@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資料</title>
+</head>
+<body>
+    <h1>{{errormessage}}</h1>
+    {% for data in resultObject %}
+    <h2>顯示student資料表的資料</h2>
+    編號:{{data.cID}}<br>
+    姓名:{{data.cName}}<br>
+    性別:{{data.cSex}}<br>
+    生日:{{data.cBirthday}}<br>
+    信箱:{{data.cEmail}}<br>
+    電話:{{data.cPhone}}<br>
+    地址:{{data.cAddr}}<br>
+    {% endfor %}
+</body>
+</html>
